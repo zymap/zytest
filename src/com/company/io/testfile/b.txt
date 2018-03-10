@@ -1,0 +1,1 @@
+randomaccessfile write in it
