@@ -1,6 +1,7 @@
 package com.sort;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -10,9 +11,12 @@ import java.util.Random;
  */
 public class MySort {
     public static void main(String[] args) {
-        testBubbleSort();
-        testSimpleSelectionSort();
-        testStraightInsertionSort();
+//        testBubbleSort();
+//        testSimpleSelectionSort();
+//        testStraightInsertionSort();
+
+//        testQuickSort();
+        testMergeSort();
     }
 
     public static int[] createRandomArray(int size) {
@@ -25,15 +29,12 @@ public class MySort {
     }
 
     public static void printArray(int[] array) {
-        for (int i : array) {
-            System.out.print(i + "\t");
-        }
-        System.out.println();
+        System.out.println(Arrays.toString(array));
     }
 
     public static List<Integer> createRandomList(int size) {
         System.out.println("create random list:");
-        ArrayList<Integer> random = new ArrayList<>();
+                      ArrayList<Integer> random = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             random.add(new Random().nextInt(100));
         }
@@ -168,43 +169,172 @@ public class MySort {
      * @return
      */
     public static int[] shellSort(int[] randomArray) {
-        int gap = randomArray.length / 2;
-        while (gap >= 1) {
-
+        System.out.println("shell sort:");
+        for (int gap = randomArray.length / 2; gap > 0; gap = gap / 2) {
+            for (int i = gap; i < randomArray.length; i++) {
+                int basic = i - gap;
+                int j = i;
+                int temp = randomArray[j];
+                while (j - gap >= 0 && randomArray[j] < randomArray[j - gap]) {
+                    randomArray[j] = randomArray[j - gap];
+                    j -= gap;
+                }
+                randomArray[j] = temp;
+            }
         }
         return randomArray;
     }
 
-    private static int[] shellInsertionSort(int[] randomList,int gap) {
-        for (int i = 0; i < randomList.length - 1; i++) {
-            for (int j = i + 1; j > 0; j--) {
-                int temp = randomList[j];
-                int k = j;
-                while (k > 0 && temp < randomList[k - 1]) {
-                    randomList[k] = randomList[k - 1];
-                    k = k - 1;
-                }
-                randomList[k] = temp;
-            }
-        }
-        return randomList;
+    public static void testShellSort() {
+        int a[] = createRandomArray(10);
+        printArray(a);
+
+        shellSort(a);
+        printArray(a);
     }
+
 
     public static int[] HeapSort(int[] random) {
         return random;
     }
 
-    public static int[] QuickSort(int[] random) {
-        int basic = random[0];
-        int low = 0;
-        int height = random.length;
-        while (low<height) {
-            while (low < height && basic > random[height]) {
-                ++low;
-//                int temp = random[]
-            }
+
+    /**
+     * 交换排序
+     * 快速排序 (不稳定)
+     * 时间复杂度:
+     *      最好:O(nlogn)
+     *      最坏:O(n²)
+     *      平均时间复杂度:O(nlogn)
+     * 空间复杂度:O(logn)
+     *
+     * @param random
+     * @param begin
+     * @param end
+     */
+    public static void quickSort(int random[], int begin, int end) {
+        if (begin < end) {
+            int p = partition(random, begin, end);
+            quickSort(random, begin, p - 1);
+            quickSort(random, p + 1, end);
         }
+    }
+
+    private static void swap(int random[], int i, int j) {
+        int temp = random[i];
+        random[i] = random[j];
+        random[j] = temp;
+    }
+
+    public static int partition(int random[], int low, int high) {
+        int basic = random[low];
+        while (low < high) {
+            while (low < high && random[high] > basic) {
+                --high;
+            }
+            swap(random, low, high);
+            while (low < high && basic > random[low]) {
+                ++low;
+            }
+            swap(random, low, high);
+        }
+        return low;
+    }
+
+    public static void testQuickSort() {
+        int a[] = createRandomArray(10);
+        printArray(a);
+        System.out.println("quick sort:");
+        quickSort(a, 0, 9);
+        printArray(a);
+    }
+
+    /**
+     *
+     *
+     * @param random
+     * @param
+     * @param
+     * @return
+     */
+
+    public static int[] mergeSort(int random[]) {
+        System.out.println("merge sort:");
+        int temp[] = new int[random.length];
+        mergeSort(random, 0, random.length, temp);
         return random;
     }
+
+    public static void split(int[] random, int head, int tail,int[] temp) {
+        System.out.println(head + "------" + tail);
+        if (head < tail) {
+            int mid = (head + tail) / 2;
+            split(random, head, mid - 1, temp);
+            split(random, mid + 1, tail, temp);
+        }
+        return;
+    }
+
+    private static void mergeSort(int random[], int begin, int end, int temp[]) {
+        System.out.println();
+        if (begin < end) {
+            int mid = (begin + end) / 2;
+            mergeSort(random, begin, mid, temp);
+            mergeSort(random, mid + 1, end, temp);
+            merge(random, begin, mid, end, temp);
+        }
+    }
+
+    public static void merge(int random[], int begin, int mid, int end,int temp[]) {
+        int left = begin;
+        int right = mid + 1;
+        int temp_ptr = 0;
+        while (left < mid && right < end) {
+            if (random[left] < random[right]) {
+                temp[temp_ptr++] = random[left++];
+            } else {
+                temp[temp_ptr++] = random[right++];
+            }
+        }
+
+        while (left < mid) {
+            temp[temp_ptr++] = random[left++];
+        }
+        while (right < end) {
+            temp[temp_ptr++] = random[right++];
+        }
+
+        temp_ptr = 0;
+        while (left < right) {
+            random[begin++] = temp[temp_ptr++];
+        }
+    }
+
+    public static void testMergeSort() {
+
+//        int low = 0;
+//        int high = 10;
+//        int mid;
+//
+//        while (true) {
+//            mid = (low + high) / 2;
+//            high = mid;
+//            System.out.println(mid);
+//            if (mid == 1) {
+//                break;
+//            }
+//        }
+
+
+        int a[] = createRandomArray(11);
+        int[] temp = new int[a.length];
+        split(a, 0, a.length, temp);
+//        printArray(a);
+//
+//        mergeSort(a);
+//        printArray(a);
+    }
+
+
 
 }
