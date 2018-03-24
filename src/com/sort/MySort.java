@@ -14,16 +14,17 @@ public class MySort {
 //        testBubbleSort();
 //        testSimpleSelectionSort();
 //        testStraightInsertionSort();
-
 //        testQuickSort();
-        testMergeSort();
+//        testMergeSort();
+
+        testHeapSort();
     }
 
     public static int[] createRandomArray(int size) {
         System.out.println("create random array:");
         int array[] = new int[size];
         for (int i = 0; i < size; i++) {
-            array[i] = new Random().nextInt(100);
+            array[i] = new Random().nextInt(size);
         }
         return array;
     }
@@ -34,7 +35,7 @@ public class MySort {
 
     public static List<Integer> createRandomList(int size) {
         System.out.println("create random list:");
-                      ArrayList<Integer> random = new ArrayList<>();
+        ArrayList<Integer> random = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             random.add(new Random().nextInt(100));
         }
@@ -170,7 +171,7 @@ public class MySort {
      */
     public static int[] shellSort(int[] randomArray) {
         System.out.println("shell sort:");
-        for (int gap = randomArray.length / 2; gap > 0; gap = gap / 2) {
+        for (int gap = randomArray.length >> 1; gap > 0; gap = gap >> 1) {
             for (int i = gap; i < randomArray.length; i++) {
                 int basic = i - gap;
                 int j = i;
@@ -191,11 +192,6 @@ public class MySort {
 
         shellSort(a);
         printArray(a);
-    }
-
-
-    public static int[] HeapSort(int[] random) {
-        return random;
     }
 
 
@@ -250,6 +246,12 @@ public class MySort {
     }
 
     /**
+     * 归并排序
+     * 时间复杂度:
+     *      最好:O(n)
+     *      最坏:O(nlogn)
+     *      平均时间复杂度:O(nlogn)
+     * 空间复杂度:O(n)
      *
      *
      * @param random
@@ -257,84 +259,198 @@ public class MySort {
      * @param
      * @return
      */
+    public static int[] mergeSort(int[] random) {
 
-    public static int[] mergeSort(int random[]) {
-        System.out.println("merge sort:");
-        int temp[] = new int[random.length];
-        mergeSort(random, 0, random.length, temp);
+        int right_max, right_min, left_max, left_min;
+        int randomsize = random.length;
+        int[] temp = new int[randomsize];
+        int tempprt = 0;
+
+        for (int i = 1; i <= randomsize; i <<= 1) {
+            for (int j = 0; j < randomsize; j += (i << 1)) {
+                int x, y;
+                int lowstart = j, lowend = (x = (j + i - 1)) < randomsize ? x : randomsize - 1;
+                int highstart = lowend + 1, highend = (y = j + (i << 1) - 1) < randomsize ? y : randomsize - 1;
+                tempprt = j;
+                while (lowstart <= lowend && highstart <= highend) {
+                    temp[tempprt++] = random[lowstart] < random[highstart] ? random[lowstart++] : random[highstart++];
+                }
+                while (lowstart <= lowend) {
+                    temp[tempprt++] = random[lowstart++];
+                }
+                while (highstart <= highend) {
+                    temp[tempprt++] = random[highstart++];
+                }
+            }
+            int[] x = random;
+            random = temp;
+            temp = x;
+        }
+
         return random;
     }
 
-    public static void split(int[] random, int head, int tail,int[] temp) {
-        System.out.println(head + "------" + tail);
-        if (head < tail) {
-            int mid = (head + tail) / 2;
-            split(random, head, mid - 1, temp);
-            split(random, mid + 1, tail, temp);
+    private static void recursiveMergeSort(int[] random, int[] result, int start, int end) {
+        if (start >= end)
+            return;
+
+        int length = end - start;
+        int mid = length >> 1 + start;
+
+        int lowstart = start, lowend = mid;
+        int highstart = mid, highend = end;
+        int resultptr = start;
+
+        while (lowstart < lowend && highstart < highend) {
+            result[resultptr++] = random[lowstart] < random[highstart] ? random[lowstart++] : random[highstart++];
         }
-        return;
+
+        while (lowstart < lowend) {
+            result[resultptr++] = random[lowstart++];
+        }
+        while (highstart < highend) {
+            result[resultptr++] = random[highstart++];
+        }
+
+        for (resultptr = start; resultptr < end; resultptr++) {
+            random[resultptr] = result[resultptr];
+        }
     }
 
-    private static void mergeSort(int random[], int begin, int end, int temp[]) {
-        System.out.println();
-        if (begin < end) {
-            int mid = (begin + end) / 2;
-            mergeSort(random, begin, mid, temp);
-            mergeSort(random, mid + 1, end, temp);
-            merge(random, begin, mid, end, temp);
-        }
+    public static void recursiveMergeSort(int[] random) {
+        int[] result = new int[random.length];
+        recursiveMergeSort(random, result, 0, random.length - 1);
     }
 
-    public static void merge(int random[], int begin, int mid, int end,int temp[]) {
-        int left = begin;
-        int right = mid + 1;
-        int temp_ptr = 0;
-        while (left < mid && right < end) {
-            if (random[left] < random[right]) {
-                temp[temp_ptr++] = random[left++];
-            } else {
-                temp[temp_ptr++] = random[right++];
+    public static void merge_sort(int[] arr) {
+        int len = arr.length;
+        int[] result = new int[len];
+        int block, start;
+
+        // 原版代码的迭代次数少了一次，没有考虑到奇数列数组的情况
+        for(block = 1; block < len; block <<= 2) {
+            for (start = 0; start < len; start += (block << 1)) {
+                int low = start;
+                int mid = (start + block) < len ? (start + block) : len;
+                int high = (start + block << 1) < len ? (start + 2 * block) : len;
+                //两个块的起始下标及结束下标
+                int start1 = low, end1 = mid;
+                int start2 = mid, end2 = high;
+                //开始对两个block进行归并排序
+                while (start1 < end1 && start2 < end2) {
+                    result[low++] = arr[start1] < arr[start2] ? arr[start1++] : arr[start2++];
+                }
+                while (start1 < end1) {
+                    result[low++] = arr[start1++];
+                }
+                while (start2 < end2) {
+                    result[low++] = arr[start2++];
+                }
             }
+            int[] temp = arr;
+            arr = result;
+            result = temp;
         }
-
-        while (left < mid) {
-            temp[temp_ptr++] = random[left++];
-        }
-        while (right < end) {
-            temp[temp_ptr++] = random[right++];
-        }
-
-        temp_ptr = 0;
-        while (left < right) {
-            random[begin++] = temp[temp_ptr++];
-        }
+        result = arr;
     }
 
     public static void testMergeSort() {
+        int[] array = createRandomArray(1000);
+        printArray(array);
 
-//        int low = 0;
-//        int high = 10;
-//        int mid;
-//
-//        while (true) {
-//            mid = (low + high) / 2;
-//            high = mid;
-//            System.out.println(mid);
-//            if (mid == 1) {
-//                break;
-//            }
-//        }
+        startCountTime();
+        merge_sort(array);
+        showtime();
+        printArray(array);
+
+        startCountTime();
+        mergeSort(array);
+        showtime();
+        printArray(array);
+
+        startCountTime();
+        recursiveMergeSort(array);
+        showtime();
+        printArray(array);
+    }
 
 
-        int a[] = createRandomArray(11);
-        int[] temp = new int[a.length];
-        split(a, 0, a.length, temp);
-//        printArray(a);
-//
-//        mergeSort(a);
-//        printArray(a);
+    public static void heapSort(int[] random) {
+        createBigHeadHeap(random, random.length);
+
+        for (int i = 0; i < random.length; i++) {
+            swap(random, 0, random.length - 1 - i);
+            createBigHeadHeap(random, random.length - i - 1);
+        }
+    }
+
+    //升序一般构造大顶堆
+    private static void createBigHeadHeap(int[] array,int end) {
+        int lastnotleafnode = (end >> 1) - 1;
+        for (int node = lastnotleafnode; node >= 0; node--) {
+            int maxnode = 0;
+            int right = 0;
+            int left = 0;
+            int leftnode = (left = (node << 1) + 1) > end - 1 ? end - 1 : left;
+            int rightnode = (right = (node << 1) + 2) > end - 1 ? end - 1 : right;
+            maxnode = array[leftnode] > array[rightnode] ? leftnode : rightnode;
+
+            int temp = node;
+            while (array[temp]<array[maxnode]){
+                int t = array[temp];
+                array[temp] = array[maxnode];
+                array[maxnode] = t;
+
+                if ((temp << 1) + 1 > end - 1)
+                    break;
+
+                temp = maxnode;
+                leftnode = (left = (temp << 1) + 1) > end - 1 ? end - 1 : left;
+                rightnode = (right = (temp << 1) + 2) > end - 1 ? end - 1 : right;
+                maxnode = array[leftnode] > array[rightnode] ? leftnode : rightnode;
+            }
+        }
+    }
+
+    //降序一般构造小顶堆
+    private static void createSmallHeadHeap(int[] array, int end) {
+        int lastnotleafnode = (end >> 1) - 1;
+        for (int node = lastnotleafnode; node >= 0; node--) {
+            int minnode = 0;
+            int right = 0;
+            int leftnode = (node << 1) + 1;
+            int rightnode = (right = (node << 1) + 2) > end - 1 ? end - 1 : right;
+            minnode = array[leftnode] < array[rightnode] ? leftnode : rightnode;
+            if (array[node] > array[minnode]) {
+                int temp = array[node];
+                array[node] = array[minnode];
+                array[minnode] = temp;
+            }
+        }
+    }
+
+    public static void testHeapSort() {
+        int[] array = createRandomArray(10000);
+        printArray(array);
+        startCountTime();
+
+        heapSort(array);
+        showtime();
+        printArray(array);
     }
 
 
 
+
+    //the time record
+
+    private static long time = 0;
+
+    public static void startCountTime() {
+        time = System.nanoTime();
+    }
+
+    public static void showtime() {
+        System.out.print("time:" + String.valueOf(System.nanoTime()-time + "ns"+"\t"));
+    }
 }
